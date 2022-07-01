@@ -2,7 +2,7 @@ const express = require('express');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const { reset } = require('nodemon');
 const port = process.env.PORT || 5000;
 const app = express();
@@ -60,24 +60,35 @@ async function run() {
     // Add Task
     app.post('/add-task', async (req, res) => {
       const title = req.body.title;
-      const description = req.body.description;
-      const label = req.body.label;
       const email = req.body.email;
       const task = {
         title,
-        description,
-        label,
-        email
+        email,
+        status: 'incompleted'
       }
       const result = await tasksCollection.insertOne(task);
       res.send({ status: 200, message: `Task successfully added` })
     });
-
+    // Get my tasks
     app.get('/mytasks', verifyJWT, async (req, res) => {
       const email = req.query.email;
-      const query = { email: email };
+      const query = { email: email, status: "incompleted" };
       const myTasks = await tasksCollection.find(query).toArray();
-      return res.send(myTasks);
+      return res.send(myTasks.reverse());
+    })
+    // update task status
+    app.patch('/mytask/', async (req, res) => {
+      const id = req.body.id;
+      const status = req.body.status;
+      console.log(status);
+      const filter = { _id: ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status
+        }
+      }
+      const result = await tasksCollection.updateOne(filter, updateDoc);
+      res.send(result);
     })
 
   }
