@@ -23,7 +23,7 @@ function verifyJWT(req, res, next) {
     return res.status(401).send({ message: 'UnAuthorized access' });
   }
   const token = authHeader.split(' ')[1];
-  jwt.verify(token, process.env.PH_ACCESS_TOKEN, function (err, decoded) {
+  jwt.verify(token, process.env.TASKSIFY_ACCESSS, function (err, decoded) {
     if (err) {
       return res.status(403).send({ message: 'Forbidden access' })
     }
@@ -72,6 +72,14 @@ async function run() {
       const result = await tasksCollection.insertOne(task);
       res.send({ status: 200, message: `Task successfully added` })
     });
+
+    app.get('/mytasks', verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const myTasks = await tasksCollection.find(query).toArray();
+      return res.send(myTasks);
+    })
+
   }
   finally {
     // 
