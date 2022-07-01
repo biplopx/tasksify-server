@@ -41,7 +41,8 @@ async function run() {
     await client.connect();
     console.log('DB Connect');
     const usersCollection = client.db('tasksifydb').collection('users');
-    // user creation
+    const tasksCollection = client.db('tasksifydb').collection('tasks');
+    // user create
     app.put('/user/:email', async (req, res) => {
       const email = req.params.email;
       const user = req.body;
@@ -56,6 +57,21 @@ async function run() {
       res.send({ result, token })
     });
 
+    // Add Task
+    app.post('/add-task', async (req, res) => {
+      const title = req.body.title;
+      const description = req.body.description;
+      const label = req.body.label;
+      const email = req.body.email;
+      const task = {
+        title,
+        description,
+        label,
+        email
+      }
+      const result = await tasksCollection.insertOne(task);
+      res.send({ status: 200, message: `Task successfully added` })
+    });
   }
   finally {
     // 
