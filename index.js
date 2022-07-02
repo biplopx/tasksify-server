@@ -76,8 +76,15 @@ async function run() {
       const myTasks = await tasksCollection.find(query).toArray();
       return res.send(myTasks.reverse());
     })
-    // update task status
-    app.patch('/mytask/', async (req, res) => {
+    // Completed Task
+    app.get('/mytasks/completed', verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email, status: "completed" };
+      const completedTask = await tasksCollection.find(query).toArray();
+      return res.send(completedTask.reverse());
+    })
+    // completed task status
+    app.put('/mytask/', async (req, res) => {
       const id = req.body.id;
       const status = req.body.status;
       console.log(status);
@@ -85,6 +92,19 @@ async function run() {
       const updateDoc = {
         $set: {
           status
+        }
+      }
+      const result = await tasksCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
+    // edit task
+    app.put('/mytask/edit', async (req, res) => {
+      const id = req.body.id;
+      const editedTask = req.body.title;
+      const filter = { _id: ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          title: editedTask
         }
       }
       const result = await tasksCollection.updateOne(filter, updateDoc);
